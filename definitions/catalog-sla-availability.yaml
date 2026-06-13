@@ -1,0 +1,17 @@
+apiVersion: pyrra.dev/v1alpha1
+kind: ServiceLevelObjective
+metadata:
+  name: catalog-sla-availability
+  labels:
+    service: catalog
+    type: sla
+spec:
+  description: "SLA de disponibilidad mensual del catálogo de productos"
+  target: "90"
+  window: 30d
+  indicator:
+    ratio:
+      errors:
+        metric: http_requests_total{service="catalog", status="500"}
+      total:
+        metric: http_requests_total{service="catalog"}

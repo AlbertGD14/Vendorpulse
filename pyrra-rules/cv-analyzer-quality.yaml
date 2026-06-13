@@ -1,0 +1,140 @@
+groups:
+- interval: 30s
+  name: cv-analyzer-quality-increase
+  rules:
+  - expr: sum(increase(sli_checks_total{check="quality",service="cv-analyzer"}[1h]))
+    labels:
+      check: quality
+      service: cv-analyzer
+      slo: cv-analyzer-quality
+    record: sli_checks:increase1h
+  - alert: SLOMetricAbsent
+    expr: absent(sli_checks_total{check="quality",service="cv-analyzer"}) == 1
+    for: 0s
+    labels:
+      check: quality
+      service: cv-analyzer
+      severity: critical
+      slo: cv-analyzer-quality
+  - expr: sum(increase(sli_errors_total{check="quality",service="cv-analyzer"}[1h]))
+    labels:
+      check: quality
+      service: cv-analyzer
+      slo: cv-analyzer-quality
+    record: sli_errors:increase1h
+  - alert: SLOMetricAbsent
+    expr: absent(sli_errors_total{check="quality",service="cv-analyzer"}) == 1
+    for: 0s
+    labels:
+      check: quality
+      service: cv-analyzer
+      severity: critical
+      slo: cv-analyzer-quality
+- interval: 30s
+  name: cv-analyzer-quality
+  rules:
+  - expr: sum(rate(sli_errors_total{check="quality",service="cv-analyzer"}[1s])) /
+      sum(rate(sli_checks_total{check="quality",service="cv-analyzer"}[1s]))
+    labels:
+      check: quality
+      service: cv-analyzer
+      slo: cv-analyzer-quality
+    record: sli_checks:burnrate0s
+  - expr: sum(rate(sli_errors_total{check="quality",service="cv-analyzer"}[1m])) /
+      sum(rate(sli_checks_total{check="quality",service="cv-analyzer"}[1m]))
+    labels:
+      check: quality
+      service: cv-analyzer
+      slo: cv-analyzer-quality
+    record: sli_checks:burnrate1m
+  - expr: sum(rate(sli_errors_total{check="quality",service="cv-analyzer"}[2m])) /
+      sum(rate(sli_checks_total{check="quality",service="cv-analyzer"}[2m]))
+    labels:
+      check: quality
+      service: cv-analyzer
+      slo: cv-analyzer-quality
+    record: sli_checks:burnrate2m
+  - expr: sum(rate(sli_errors_total{check="quality",service="cv-analyzer"}[9m])) /
+      sum(rate(sli_checks_total{check="quality",service="cv-analyzer"}[9m]))
+    labels:
+      check: quality
+      service: cv-analyzer
+      slo: cv-analyzer-quality
+    record: sli_checks:burnrate9m
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate0s{check="quality",service="cv-analyzer",slo="cv-analyzer-quality"}
+      > (14 * (1-0.99)) and sli_checks:burnrate0s{check="quality",service="cv-analyzer",slo="cv-analyzer-quality"}
+      > (14 * (1-0.99))
+    for: 0s
+    labels:
+      check: quality
+      exhaustion: 4m17s
+      long: 0s
+      service: cv-analyzer
+      severity: critical
+      short: 0s
+      slo: cv-analyzer-quality
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate0s{check="quality",service="cv-analyzer",slo="cv-analyzer-quality"}
+      > (7 * (1-0.99)) and sli_checks:burnrate1m{check="quality",service="cv-analyzer",slo="cv-analyzer-quality"}
+      > (7 * (1-0.99))
+    for: 0s
+    labels:
+      check: quality
+      exhaustion: 8m34s
+      long: 1m
+      service: cv-analyzer
+      severity: critical
+      short: 0s
+      slo: cv-analyzer-quality
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate0s{check="quality",service="cv-analyzer",slo="cv-analyzer-quality"}
+      > (2 * (1-0.99)) and sli_checks:burnrate2m{check="quality",service="cv-analyzer",slo="cv-analyzer-quality"}
+      > (2 * (1-0.99))
+    for: 0s
+    labels:
+      check: quality
+      exhaustion: 30m
+      long: 2m
+      service: cv-analyzer
+      severity: warning
+      short: 0s
+      slo: cv-analyzer-quality
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate1m{check="quality",service="cv-analyzer",slo="cv-analyzer-quality"}
+      > (1 * (1-0.99)) and sli_checks:burnrate9m{check="quality",service="cv-analyzer",slo="cv-analyzer-quality"}
+      > (1 * (1-0.99))
+    for: 0s
+    labels:
+      check: quality
+      exhaustion: 1h
+      long: 9m
+      service: cv-analyzer
+      severity: warning
+      short: 1m
+      slo: cv-analyzer-quality
+- interval: 30s
+  name: cv-analyzer-quality-generic
+  rules:
+  - expr: "0.99"
+    labels:
+      slo: cv-analyzer-quality
+    record: pyrra_objective
+  - expr: "3600"
+    labels:
+      slo: cv-analyzer-quality
+    record: pyrra_window
+  - expr: 1 - sum(sli_errors:increase1h{check="quality",service="cv-analyzer",slo="cv-analyzer-quality"}
+      or vector(0)) / sum(sli_checks:increase1h{check="quality",service="cv-analyzer",slo="cv-analyzer-quality"})
+    labels:
+      slo: cv-analyzer-quality
+    record: pyrra_availability
+  - expr: sum(rate(sli_checks_total{check="quality",service="cv-analyzer"}[5m]))
+    labels:
+      slo: cv-analyzer-quality
+    record: pyrra_requests:rate5m
+  - expr: sum(rate(sli_errors_total{check="quality",service="cv-analyzer"}[5m])) or
+      vector(0)
+    labels:
+      slo: cv-analyzer-quality
+    record: pyrra_errors:rate5m

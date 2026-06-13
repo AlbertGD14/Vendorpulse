@@ -1,0 +1,101 @@
+groups:
+- interval: 30s
+  name: catalog-critical-window-increase
+  rules:
+  - expr: sum by (status) (increase(http_requests_total{service="catalog"}[5m]))
+    labels:
+      service: catalog
+      slo: catalog-critical-window
+    record: http_requests:increase5m
+  - alert: SLOMetricAbsent
+    expr: absent(http_requests_total{service="catalog"}) == 1
+    for: 0s
+    labels:
+      service: catalog
+      severity: critical
+      slo: catalog-critical-window
+- interval: 30s
+  name: catalog-critical-window
+  rules:
+  - expr: sum(rate(http_requests_total{service="catalog",status="500"}[1s])) / sum(rate(http_requests_total{service="catalog"}[1s]))
+    labels:
+      service: catalog
+      slo: catalog-critical-window
+    record: http_requests:burnrate0s
+  - expr: sum(rate(http_requests_total{service="catalog",status="500"}[1m])) / sum(rate(http_requests_total{service="catalog"}[1m]))
+    labels:
+      service: catalog
+      slo: catalog-critical-window
+    record: http_requests:burnrate1m
+  - alert: ErrorBudgetBurn
+    expr: http_requests:burnrate0s{service="catalog",slo="catalog-critical-window"}
+      > (14 * (1-0.92)) and http_requests:burnrate0s{service="catalog",slo="catalog-critical-window"}
+      > (14 * (1-0.92))
+    for: 0s
+    labels:
+      exhaustion: 21s
+      long: 0s
+      service: catalog
+      severity: critical
+      short: 0s
+      slo: catalog-critical-window
+  - alert: ErrorBudgetBurn
+    expr: http_requests:burnrate0s{service="catalog",slo="catalog-critical-window"}
+      > (7 * (1-0.92)) and http_requests:burnrate0s{service="catalog",slo="catalog-critical-window"}
+      > (7 * (1-0.92))
+    for: 0s
+    labels:
+      exhaustion: 42s
+      long: 0s
+      service: catalog
+      severity: critical
+      short: 0s
+      slo: catalog-critical-window
+  - alert: ErrorBudgetBurn
+    expr: http_requests:burnrate0s{service="catalog",slo="catalog-critical-window"}
+      > (2 * (1-0.92)) and http_requests:burnrate0s{service="catalog",slo="catalog-critical-window"}
+      > (2 * (1-0.92))
+    for: 0s
+    labels:
+      exhaustion: 2m30s
+      long: 0s
+      service: catalog
+      severity: warning
+      short: 0s
+      slo: catalog-critical-window
+  - alert: ErrorBudgetBurn
+    expr: http_requests:burnrate0s{service="catalog",slo="catalog-critical-window"}
+      > (1 * (1-0.92)) and http_requests:burnrate1m{service="catalog",slo="catalog-critical-window"}
+      > (1 * (1-0.92))
+    for: 0s
+    labels:
+      exhaustion: 5m
+      long: 1m
+      service: catalog
+      severity: warning
+      short: 0s
+      slo: catalog-critical-window
+- interval: 30s
+  name: catalog-critical-window-generic
+  rules:
+  - expr: "0.92"
+    labels:
+      slo: catalog-critical-window
+    record: pyrra_objective
+  - expr: "300"
+    labels:
+      slo: catalog-critical-window
+    record: pyrra_window
+  - expr: 1 - sum(http_requests:increase5m{service="catalog",slo="catalog-critical-window",status="500"}
+      or vector(0)) / sum(http_requests:increase5m{service="catalog",slo="catalog-critical-window"})
+    labels:
+      slo: catalog-critical-window
+    record: pyrra_availability
+  - expr: sum(rate(http_requests_total{service="catalog"}[5m]))
+    labels:
+      slo: catalog-critical-window
+    record: pyrra_requests:rate5m
+  - expr: sum(rate(http_requests_total{service="catalog",status="500"}[5m])) or vector(0)
+    labels:
+      slo: catalog-critical-window
+    record: pyrra_errors:rate5m

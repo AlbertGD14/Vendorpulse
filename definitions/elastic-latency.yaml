@@ -1,0 +1,22 @@
+apiVersion: pyrra.dev/v1alpha1
+kind: ServiceLevelObjective
+metadata:
+  name: elastic-latency
+  labels:
+    service: elastic
+  annotations:
+    bridge.real: "true"
+    bridge.prometheus_url: "http://host.docker.internal:9090"
+    bridge.query: 'avg_p_latency{service_type="elastic-workbench-cv-analyzer"}'
+    bridge.threshold: "100.0"
+    bridge.condition: "<="
+spec:
+  description: "latency de elastic: 99% en ventana 1h"
+  target: "99"
+  window: 1h
+  indicator:
+    ratio:
+      errors:
+        metric: sli_errors_total{service="elastic", check="latency"}
+      total:
+        metric: sli_checks_total{service="elastic", check="latency"}

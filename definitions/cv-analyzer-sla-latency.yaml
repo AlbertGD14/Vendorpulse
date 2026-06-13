@@ -1,0 +1,17 @@
+apiVersion: pyrra.dev/v1alpha1
+kind: ServiceLevelObjective
+metadata:
+  name: cv-analyzer-sla-latency
+  labels:
+    service: cv-analyzer
+    type: sla
+spec:
+  description: "SLA mensual de latencia del CV analyzer: avg_p_latency <= 0.1s el 95% del tiempo"
+  target: "95"
+  window: 30d
+  indicator:
+    ratio:
+      errors:
+        metric: sli_errors_total{service="cv-analyzer", check="latency"}
+      total:
+        metric: sli_checks_total{service="cv-analyzer", check="latency"}

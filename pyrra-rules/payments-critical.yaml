@@ -1,0 +1,101 @@
+groups:
+- interval: 30s
+  name: payments-critical-window-increase
+  rules:
+  - expr: sum by (status) (increase(http_requests_total{service="payments"}[5m]))
+    labels:
+      service: payments
+      slo: payments-critical-window
+    record: http_requests:increase5m
+  - alert: SLOMetricAbsent
+    expr: absent(http_requests_total{service="payments"}) == 1
+    for: 0s
+    labels:
+      service: payments
+      severity: critical
+      slo: payments-critical-window
+- interval: 30s
+  name: payments-critical-window
+  rules:
+  - expr: sum(rate(http_requests_total{service="payments",status="500"}[1s])) / sum(rate(http_requests_total{service="payments"}[1s]))
+    labels:
+      service: payments
+      slo: payments-critical-window
+    record: http_requests:burnrate0s
+  - expr: sum(rate(http_requests_total{service="payments",status="500"}[1m])) / sum(rate(http_requests_total{service="payments"}[1m]))
+    labels:
+      service: payments
+      slo: payments-critical-window
+    record: http_requests:burnrate1m
+  - alert: ErrorBudgetBurn
+    expr: http_requests:burnrate0s{service="payments",slo="payments-critical-window"}
+      > (14 * (1-0.995)) and http_requests:burnrate0s{service="payments",slo="payments-critical-window"}
+      > (14 * (1-0.995))
+    for: 0s
+    labels:
+      exhaustion: 21s
+      long: 0s
+      service: payments
+      severity: critical
+      short: 0s
+      slo: payments-critical-window
+  - alert: ErrorBudgetBurn
+    expr: http_requests:burnrate0s{service="payments",slo="payments-critical-window"}
+      > (7 * (1-0.995)) and http_requests:burnrate0s{service="payments",slo="payments-critical-window"}
+      > (7 * (1-0.995))
+    for: 0s
+    labels:
+      exhaustion: 42s
+      long: 0s
+      service: payments
+      severity: critical
+      short: 0s
+      slo: payments-critical-window
+  - alert: ErrorBudgetBurn
+    expr: http_requests:burnrate0s{service="payments",slo="payments-critical-window"}
+      > (2 * (1-0.995)) and http_requests:burnrate0s{service="payments",slo="payments-critical-window"}
+      > (2 * (1-0.995))
+    for: 0s
+    labels:
+      exhaustion: 2m30s
+      long: 0s
+      service: payments
+      severity: warning
+      short: 0s
+      slo: payments-critical-window
+  - alert: ErrorBudgetBurn
+    expr: http_requests:burnrate0s{service="payments",slo="payments-critical-window"}
+      > (1 * (1-0.995)) and http_requests:burnrate1m{service="payments",slo="payments-critical-window"}
+      > (1 * (1-0.995))
+    for: 0s
+    labels:
+      exhaustion: 5m
+      long: 1m
+      service: payments
+      severity: warning
+      short: 0s
+      slo: payments-critical-window
+- interval: 30s
+  name: payments-critical-window-generic
+  rules:
+  - expr: "0.995"
+    labels:
+      slo: payments-critical-window
+    record: pyrra_objective
+  - expr: "300"
+    labels:
+      slo: payments-critical-window
+    record: pyrra_window
+  - expr: 1 - sum(http_requests:increase5m{service="payments",slo="payments-critical-window",status="500"}
+      or vector(0)) / sum(http_requests:increase5m{service="payments",slo="payments-critical-window"})
+    labels:
+      slo: payments-critical-window
+    record: pyrra_availability
+  - expr: sum(rate(http_requests_total{service="payments"}[5m]))
+    labels:
+      slo: payments-critical-window
+    record: pyrra_requests:rate5m
+  - expr: sum(rate(http_requests_total{service="payments",status="500"}[5m])) or vector(0)
+    labels:
+      slo: payments-critical-window
+    record: pyrra_errors:rate5m

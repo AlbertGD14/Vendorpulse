@@ -1,0 +1,16 @@
+apiVersion: pyrra.dev/v1alpha1
+kind: ServiceLevelObjective
+metadata:
+  name: catalog-availability
+  labels:
+    service: catalog
+spec:
+  description: "Disponibilidad general del catálogo de productos"
+  target: "94"
+  window: 1h
+  indicator:
+    ratio:
+      errors:
+        metric: http_requests_total{service="catalog", status="500"}
+      total:
+        metric: http_requests_total{service="catalog"}

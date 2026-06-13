@@ -1,0 +1,17 @@
+apiVersion: pyrra.dev/v1alpha1
+kind: ServiceLevelObjective
+metadata:
+  name: cv-analyzer-sla-quality
+  labels:
+    service: cv-analyzer
+    type: sla
+spec:
+  description: "SLA mensual de calidad del CV analyzer: data_quality >= 288 el 95% del tiempo"
+  target: "95"
+  window: 30d
+  indicator:
+    ratio:
+      errors:
+        metric: sli_errors_total{service="cv-analyzer", check="quality"}
+      total:
+        metric: sli_checks_total{service="cv-analyzer", check="quality"}

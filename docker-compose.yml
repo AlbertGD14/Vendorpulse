@@ -1,0 +1,90 @@
+version: '3'
+
+services:
+  # Prometheus App
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus-tfg
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./pyrra-rules:/etc/prometheus/pyrra-rules
+    ports:
+      - "9091:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--web.enable-lifecycle'
+
+  # Servicio de Pagos
+  payments-service:
+    build: ./services
+    container_name: payments_api
+    environment:
+      - SERVICE_NAME=payments
+
+  # Servicio de Catálogo
+  catalog-service:
+    build: ./services
+    container_name: catalog_api
+    environment:
+      - SERVICE_NAME=catalog
+
+  # SLI Bridge — discovers checks by reading /definitions/*.yaml automatically
+  sli-bridge:
+    build: ./services
+    container_name: sli_bridge
+    volumes:
+      - ./definitions:/definitions:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: ["python", "sli_bridge.py"]
+
+  # Pyrra App
+  pyrra-filesystem:
+    image: ghcr.io/pyrra-dev/pyrra:latest
+    container_name: pyrra_filesystem
+    volumes:
+      - ./definitions:/definitions:ro
+      - ./pyrra-rules:/pyrra-rules
+    command:
+      - filesystem
+      - --prometheus-url=http://prometheus:9090
+      - --config-files=/definitions/*.yaml
+      - --prometheus-folder=/pyrra-rules/
+      - --generic-rules
+
+  # Pyrra API
+  pyrra-api:
+    image: ghcr.io/pyrra-dev/pyrra:latest
+    container_name: pyrra_api
+    ports:
+      - "10444:9099"
+    command:
+      - api
+      - --prometheus-url=http://prometheus:9090
+      - --api-url=http://pyrra-filesystem:9444
+    depends_on:
+      - prometheus
+      - pyrra-filesystem
+
+  # Web Backend (FastAPI)
+  web-backend:
+    build: ./backend
+    container_name: web_backend
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./definitions:/definitions
+      - ./pyrra-rules:/pyrra-rules
+    environment:
+      - SLO_DIR=/definitions
+      - PYRRA_RULES_DIR=/pyrra-rules
+    depends_on:
+      - prometheus
+
+  # Web Frontend (React)
+  web-frontend:
+    build: ./frontend
+    container_name: web_frontend
+    ports:
+      - "3001:80"
+    depends_on:
+      - web-backend

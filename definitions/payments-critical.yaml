@@ -1,0 +1,16 @@
+apiVersion: pyrra.dev/v1alpha1
+kind: ServiceLevelObjective
+metadata:
+  name: payments-critical-window
+  labels:
+    service: payments
+spec:
+  description: "Ventana crítica de pagos: mínimo de errores en últimos 5 minutos"
+  target: "99.5"
+  window: 5m
+  indicator:
+    ratio:
+      errors:
+        metric: http_requests_total{service="payments", status="500"}
+      total:
+        metric: http_requests_total{service="payments"}

@@ -1,0 +1,16 @@
+apiVersion: pyrra.dev/v1alpha1
+kind: ServiceLevelObjective
+metadata:
+  name: qr-detector-latency
+  labels:
+    service: qr-detector
+spec:
+  description: "Latencia del QR detector: avg_p_latency <= 0.05s el 99% del tiempo"
+  target: "99"
+  window: 1h
+  indicator:
+    ratio:
+      errors:
+        metric: sli_errors_total{service="qr-detector", check="latency"}
+      total:
+        metric: sli_checks_total{service="qr-detector", check="latency"}

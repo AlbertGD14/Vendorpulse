@@ -1,0 +1,17 @@
+apiVersion: pyrra.dev/v1alpha1
+kind: ServiceLevelObjective
+metadata:
+  name: qr-detector-sla-quality
+  labels:
+    service: qr-detector
+    type: sla
+spec:
+  description: "SLA mensual de calidad del QR detector: data_quality >= 800 el 95% del tiempo"
+  target: "95"
+  window: 30d
+  indicator:
+    ratio:
+      errors:
+        metric: sli_errors_total{service="qr-detector", check="quality"}
+      total:
+        metric: sli_checks_total{service="qr-detector", check="quality"}

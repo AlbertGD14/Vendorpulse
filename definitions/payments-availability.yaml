@@ -1,0 +1,16 @@
+apiVersion: pyrra.dev/v1alpha1
+kind: ServiceLevelObjective
+metadata:
+  name: payments-availability
+  labels:
+    service: payments
+spec:
+  description: "Disponibilidad general de la pasarela de pagos"
+  target: "99.9"
+  window: 1h
+  indicator:
+    ratio:
+      errors:
+        metric: http_requests_total{service="payments", status="500"}
+      total:
+        metric: http_requests_total{service="payments"}

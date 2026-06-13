@@ -1,0 +1,142 @@
+groups:
+- interval: 30s
+  name: qr-detector-real-latency-increase
+  rules:
+  - expr: sum(increase(sli_checks_total{check="latency",service="qr-detector-real"}[1h]))
+    labels:
+      check: latency
+      service: qr-detector-real
+      slo: qr-detector-real-latency
+    record: sli_checks:increase1h
+  - alert: SLOMetricAbsent
+    expr: absent(sli_checks_total{check="latency",service="qr-detector-real"}) ==
+      1
+    for: 0s
+    labels:
+      check: latency
+      service: qr-detector-real
+      severity: critical
+      slo: qr-detector-real-latency
+  - expr: sum(increase(sli_errors_total{check="latency",service="qr-detector-real"}[1h]))
+    labels:
+      check: latency
+      service: qr-detector-real
+      slo: qr-detector-real-latency
+    record: sli_errors:increase1h
+  - alert: SLOMetricAbsent
+    expr: absent(sli_errors_total{check="latency",service="qr-detector-real"}) ==
+      1
+    for: 0s
+    labels:
+      check: latency
+      service: qr-detector-real
+      severity: critical
+      slo: qr-detector-real-latency
+- interval: 30s
+  name: qr-detector-real-latency
+  rules:
+  - expr: sum(rate(sli_errors_total{check="latency",service="qr-detector-real"}[1s]))
+      / sum(rate(sli_checks_total{check="latency",service="qr-detector-real"}[1s]))
+    labels:
+      check: latency
+      service: qr-detector-real
+      slo: qr-detector-real-latency
+    record: sli_checks:burnrate0s
+  - expr: sum(rate(sli_errors_total{check="latency",service="qr-detector-real"}[1m]))
+      / sum(rate(sli_checks_total{check="latency",service="qr-detector-real"}[1m]))
+    labels:
+      check: latency
+      service: qr-detector-real
+      slo: qr-detector-real-latency
+    record: sli_checks:burnrate1m
+  - expr: sum(rate(sli_errors_total{check="latency",service="qr-detector-real"}[2m]))
+      / sum(rate(sli_checks_total{check="latency",service="qr-detector-real"}[2m]))
+    labels:
+      check: latency
+      service: qr-detector-real
+      slo: qr-detector-real-latency
+    record: sli_checks:burnrate2m
+  - expr: sum(rate(sli_errors_total{check="latency",service="qr-detector-real"}[9m]))
+      / sum(rate(sli_checks_total{check="latency",service="qr-detector-real"}[9m]))
+    labels:
+      check: latency
+      service: qr-detector-real
+      slo: qr-detector-real-latency
+    record: sli_checks:burnrate9m
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate0s{check="latency",service="qr-detector-real",slo="qr-detector-real-latency"}
+      > (14 * (1-0.99)) and sli_checks:burnrate0s{check="latency",service="qr-detector-real",slo="qr-detector-real-latency"}
+      > (14 * (1-0.99))
+    for: 0s
+    labels:
+      check: latency
+      exhaustion: 4m17s
+      long: 0s
+      service: qr-detector-real
+      severity: critical
+      short: 0s
+      slo: qr-detector-real-latency
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate0s{check="latency",service="qr-detector-real",slo="qr-detector-real-latency"}
+      > (7 * (1-0.99)) and sli_checks:burnrate1m{check="latency",service="qr-detector-real",slo="qr-detector-real-latency"}
+      > (7 * (1-0.99))
+    for: 0s
+    labels:
+      check: latency
+      exhaustion: 8m34s
+      long: 1m
+      service: qr-detector-real
+      severity: critical
+      short: 0s
+      slo: qr-detector-real-latency
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate0s{check="latency",service="qr-detector-real",slo="qr-detector-real-latency"}
+      > (2 * (1-0.99)) and sli_checks:burnrate2m{check="latency",service="qr-detector-real",slo="qr-detector-real-latency"}
+      > (2 * (1-0.99))
+    for: 0s
+    labels:
+      check: latency
+      exhaustion: 30m
+      long: 2m
+      service: qr-detector-real
+      severity: warning
+      short: 0s
+      slo: qr-detector-real-latency
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate1m{check="latency",service="qr-detector-real",slo="qr-detector-real-latency"}
+      > (1 * (1-0.99)) and sli_checks:burnrate9m{check="latency",service="qr-detector-real",slo="qr-detector-real-latency"}
+      > (1 * (1-0.99))
+    for: 0s
+    labels:
+      check: latency
+      exhaustion: 1h
+      long: 9m
+      service: qr-detector-real
+      severity: warning
+      short: 1m
+      slo: qr-detector-real-latency
+- interval: 30s
+  name: qr-detector-real-latency-generic
+  rules:
+  - expr: "0.99"
+    labels:
+      slo: qr-detector-real-latency
+    record: pyrra_objective
+  - expr: "3600"
+    labels:
+      slo: qr-detector-real-latency
+    record: pyrra_window
+  - expr: 1 - sum(sli_errors:increase1h{check="latency",service="qr-detector-real",slo="qr-detector-real-latency"}
+      or vector(0)) / sum(sli_checks:increase1h{check="latency",service="qr-detector-real",slo="qr-detector-real-latency"})
+    labels:
+      slo: qr-detector-real-latency
+    record: pyrra_availability
+  - expr: sum(rate(sli_checks_total{check="latency",service="qr-detector-real"}[5m]))
+    labels:
+      slo: qr-detector-real-latency
+    record: pyrra_requests:rate5m
+  - expr: sum(rate(sli_errors_total{check="latency",service="qr-detector-real"}[5m]))
+      or vector(0)
+    labels:
+      slo: qr-detector-real-latency
+    record: pyrra_errors:rate5m

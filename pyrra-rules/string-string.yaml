@@ -1,0 +1,135 @@
+groups:
+- interval: 30s
+  name: string-string-increase
+  rules:
+  - expr: sum(increase(sli_checks_total{check="string",service="string"}[1h]))
+    labels:
+      check: string
+      service: string
+      slo: string-string
+    record: sli_checks:increase1h
+  - alert: SLOMetricAbsent
+    expr: absent(sli_checks_total{check="string",service="string"}) == 1
+    for: 0s
+    labels:
+      check: string
+      service: string
+      severity: critical
+      slo: string-string
+  - expr: sum(increase(sli_errors_total{check="string",service="string"}[1h]))
+    labels:
+      check: string
+      service: string
+      slo: string-string
+    record: sli_errors:increase1h
+  - alert: SLOMetricAbsent
+    expr: absent(sli_errors_total{check="string",service="string"}) == 1
+    for: 0s
+    labels:
+      check: string
+      service: string
+      severity: critical
+      slo: string-string
+- interval: 30s
+  name: string-string
+  rules:
+  - expr: sum(rate(sli_errors_total{check="string",service="string"}[1s])) / sum(rate(sli_checks_total{check="string",service="string"}[1s]))
+    labels:
+      check: string
+      service: string
+      slo: string-string
+    record: sli_checks:burnrate0s
+  - expr: sum(rate(sli_errors_total{check="string",service="string"}[1m])) / sum(rate(sli_checks_total{check="string",service="string"}[1m]))
+    labels:
+      check: string
+      service: string
+      slo: string-string
+    record: sli_checks:burnrate1m
+  - expr: sum(rate(sli_errors_total{check="string",service="string"}[2m])) / sum(rate(sli_checks_total{check="string",service="string"}[2m]))
+    labels:
+      check: string
+      service: string
+      slo: string-string
+    record: sli_checks:burnrate2m
+  - expr: sum(rate(sli_errors_total{check="string",service="string"}[9m])) / sum(rate(sli_checks_total{check="string",service="string"}[9m]))
+    labels:
+      check: string
+      service: string
+      slo: string-string
+    record: sli_checks:burnrate9m
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate0s{check="string",service="string",slo="string-string"}
+      > (14 * (1-0.99)) and sli_checks:burnrate0s{check="string",service="string",slo="string-string"}
+      > (14 * (1-0.99))
+    for: 0s
+    labels:
+      check: string
+      exhaustion: 4m17s
+      long: 0s
+      service: string
+      severity: critical
+      short: 0s
+      slo: string-string
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate0s{check="string",service="string",slo="string-string"}
+      > (7 * (1-0.99)) and sli_checks:burnrate1m{check="string",service="string",slo="string-string"}
+      > (7 * (1-0.99))
+    for: 0s
+    labels:
+      check: string
+      exhaustion: 8m34s
+      long: 1m
+      service: string
+      severity: critical
+      short: 0s
+      slo: string-string
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate0s{check="string",service="string",slo="string-string"}
+      > (2 * (1-0.99)) and sli_checks:burnrate2m{check="string",service="string",slo="string-string"}
+      > (2 * (1-0.99))
+    for: 0s
+    labels:
+      check: string
+      exhaustion: 30m
+      long: 2m
+      service: string
+      severity: warning
+      short: 0s
+      slo: string-string
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate1m{check="string",service="string",slo="string-string"}
+      > (1 * (1-0.99)) and sli_checks:burnrate9m{check="string",service="string",slo="string-string"}
+      > (1 * (1-0.99))
+    for: 0s
+    labels:
+      check: string
+      exhaustion: 1h
+      long: 9m
+      service: string
+      severity: warning
+      short: 1m
+      slo: string-string
+- interval: 30s
+  name: string-string-generic
+  rules:
+  - expr: "0.99"
+    labels:
+      slo: string-string
+    record: pyrra_objective
+  - expr: "3600"
+    labels:
+      slo: string-string
+    record: pyrra_window
+  - expr: 1 - sum(sli_errors:increase1h{check="string",service="string",slo="string-string"}
+      or vector(0)) / sum(sli_checks:increase1h{check="string",service="string",slo="string-string"})
+    labels:
+      slo: string-string
+    record: pyrra_availability
+  - expr: sum(rate(sli_checks_total{check="string",service="string"}[5m]))
+    labels:
+      slo: string-string
+    record: pyrra_requests:rate5m
+  - expr: sum(rate(sli_errors_total{check="string",service="string"}[5m])) or vector(0)
+    labels:
+      slo: string-string
+    record: pyrra_errors:rate5m

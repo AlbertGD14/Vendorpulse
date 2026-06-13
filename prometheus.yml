@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 10s
+
+rule_files:
+  - "/etc/prometheus/pyrra-rules/*.yaml"
+
+scrape_configs:
+  - job_name: 'payments'
+    static_configs:
+      - targets: ['payments-service:8000']
+
+  - job_name: 'catalog'
+    static_configs:
+      - targets: ['catalog-service:8000']
+
+  - job_name: 'sli-bridge'
+    static_configs:
+      - targets: ['sli-bridge:8000']

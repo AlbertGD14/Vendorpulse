@@ -1,0 +1,111 @@
+groups:
+- interval: 30s
+  name: payments-availability-increase
+  rules:
+  - expr: sum by (status) (increase(http_requests_total{service="payments"}[1h]))
+    labels:
+      service: payments
+      slo: payments-availability
+    record: http_requests:increase1h
+  - alert: SLOMetricAbsent
+    expr: absent(http_requests_total{service="payments"}) == 1
+    for: 0s
+    labels:
+      service: payments
+      severity: critical
+      slo: payments-availability
+- interval: 30s
+  name: payments-availability
+  rules:
+  - expr: sum(rate(http_requests_total{service="payments",status="500"}[1s])) / sum(rate(http_requests_total{service="payments"}[1s]))
+    labels:
+      service: payments
+      slo: payments-availability
+    record: http_requests:burnrate0s
+  - expr: sum(rate(http_requests_total{service="payments",status="500"}[1m])) / sum(rate(http_requests_total{service="payments"}[1m]))
+    labels:
+      service: payments
+      slo: payments-availability
+    record: http_requests:burnrate1m
+  - expr: sum(rate(http_requests_total{service="payments",status="500"}[2m])) / sum(rate(http_requests_total{service="payments"}[2m]))
+    labels:
+      service: payments
+      slo: payments-availability
+    record: http_requests:burnrate2m
+  - expr: sum(rate(http_requests_total{service="payments",status="500"}[9m])) / sum(rate(http_requests_total{service="payments"}[9m]))
+    labels:
+      service: payments
+      slo: payments-availability
+    record: http_requests:burnrate9m
+  - alert: ErrorBudgetBurn
+    expr: http_requests:burnrate0s{service="payments",slo="payments-availability"}
+      > (14 * (1-0.9990000000000001)) and http_requests:burnrate0s{service="payments",slo="payments-availability"}
+      > (14 * (1-0.9990000000000001))
+    for: 0s
+    labels:
+      exhaustion: 4m17s
+      long: 0s
+      service: payments
+      severity: critical
+      short: 0s
+      slo: payments-availability
+  - alert: ErrorBudgetBurn
+    expr: http_requests:burnrate0s{service="payments",slo="payments-availability"}
+      > (7 * (1-0.9990000000000001)) and http_requests:burnrate1m{service="payments",slo="payments-availability"}
+      > (7 * (1-0.9990000000000001))
+    for: 0s
+    labels:
+      exhaustion: 8m34s
+      long: 1m
+      service: payments
+      severity: critical
+      short: 0s
+      slo: payments-availability
+  - alert: ErrorBudgetBurn
+    expr: http_requests:burnrate0s{service="payments",slo="payments-availability"}
+      > (2 * (1-0.9990000000000001)) and http_requests:burnrate2m{service="payments",slo="payments-availability"}
+      > (2 * (1-0.9990000000000001))
+    for: 0s
+    labels:
+      exhaustion: 30m
+      long: 2m
+      service: payments
+      severity: warning
+      short: 0s
+      slo: payments-availability
+  - alert: ErrorBudgetBurn
+    expr: http_requests:burnrate1m{service="payments",slo="payments-availability"}
+      > (1 * (1-0.9990000000000001)) and http_requests:burnrate9m{service="payments",slo="payments-availability"}
+      > (1 * (1-0.9990000000000001))
+    for: 0s
+    labels:
+      exhaustion: 1h
+      long: 9m
+      service: payments
+      severity: warning
+      short: 1m
+      slo: payments-availability
+- interval: 30s
+  name: payments-availability-generic
+  rules:
+  - expr: "0.9990000000000001"
+    labels:
+      slo: payments-availability
+    record: pyrra_objective
+  - expr: "3600"
+    labels:
+      slo: payments-availability
+    record: pyrra_window
+  - expr: 1 - sum(http_requests:increase1h{service="payments",slo="payments-availability",status="500"}
+      or vector(0)) / sum(http_requests:increase1h{service="payments",slo="payments-availability"})
+    labels:
+      slo: payments-availability
+    record: pyrra_availability
+  - expr: sum(rate(http_requests_total{service="payments"}[5m]))
+    labels:
+      slo: payments-availability
+    record: pyrra_requests:rate5m
+  - expr: sum(rate(http_requests_total{service="payments",status="500"}[5m])) or vector(0)
+    labels:
+      slo: payments-availability
+    record: pyrra_errors:rate5m

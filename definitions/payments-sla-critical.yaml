@@ -1,0 +1,17 @@
+apiVersion: pyrra.dev/v1alpha1
+kind: ServiceLevelObjective
+metadata:
+  name: payments-sla-critical
+  labels:
+    service: payments
+    type: sla
+spec:
+  description: "SLA crítico mensual de la pasarela de pagos"
+  target: "99"
+  window: 30d
+  indicator:
+    ratio:
+      errors:
+        metric: http_requests_total{service="payments", status="500"}
+      total:
+        metric: http_requests_total{service="payments"}

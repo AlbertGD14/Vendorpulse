@@ -1,0 +1,129 @@
+groups:
+- interval: 2m30s
+  name: catalog-sla-critical-increase
+  rules:
+  - expr: sum by (status) (increase(http_requests_total{service="catalog"}[30d]))
+    labels:
+      service: catalog
+      slo: catalog-sla-critical
+    record: http_requests:increase30d
+  - alert: SLOMetricAbsent
+    expr: absent(http_requests_total{service="catalog"}) == 1
+    for: 1h50m
+    labels:
+      service: catalog
+      severity: critical
+      slo: catalog-sla-critical
+- interval: 30s
+  name: catalog-sla-critical
+  rules:
+  - expr: sum(rate(http_requests_total{service="catalog",status="500"}[5m])) / sum(rate(http_requests_total{service="catalog"}[5m]))
+    labels:
+      service: catalog
+      slo: catalog-sla-critical
+    record: http_requests:burnrate5m
+  - expr: sum(rate(http_requests_total{service="catalog",status="500"}[32m])) / sum(rate(http_requests_total{service="catalog"}[32m]))
+    labels:
+      service: catalog
+      slo: catalog-sla-critical
+    record: http_requests:burnrate32m
+  - expr: sum(rate(http_requests_total{service="catalog",status="500"}[1h4m])) / sum(rate(http_requests_total{service="catalog"}[1h4m]))
+    labels:
+      service: catalog
+      slo: catalog-sla-critical
+    record: http_requests:burnrate1h4m
+  - expr: sum(rate(http_requests_total{service="catalog",status="500"}[2h9m])) / sum(rate(http_requests_total{service="catalog"}[2h9m]))
+    labels:
+      service: catalog
+      slo: catalog-sla-critical
+    record: http_requests:burnrate2h9m
+  - expr: sum(rate(http_requests_total{service="catalog",status="500"}[6h26m])) /
+      sum(rate(http_requests_total{service="catalog"}[6h26m]))
+    labels:
+      service: catalog
+      slo: catalog-sla-critical
+    record: http_requests:burnrate6h26m
+  - expr: sum(rate(http_requests_total{service="catalog",status="500"}[1d1h43m]))
+      / sum(rate(http_requests_total{service="catalog"}[1d1h43m]))
+    labels:
+      service: catalog
+      slo: catalog-sla-critical
+    record: http_requests:burnrate1d1h43m
+  - expr: sum(rate(http_requests_total{service="catalog",status="500"}[4d6h51m]))
+      / sum(rate(http_requests_total{service="catalog"}[4d6h51m]))
+    labels:
+      service: catalog
+      slo: catalog-sla-critical
+    record: http_requests:burnrate4d6h51m
+  - alert: ErrorBudgetBurn
+    expr: http_requests:burnrate5m{service="catalog",slo="catalog-sla-critical"} >
+      (14 * (1-0.88)) and http_requests:burnrate1h4m{service="catalog",slo="catalog-sla-critical"}
+      > (14 * (1-0.88))
+    for: 2m0s
+    labels:
+      exhaustion: 2d3h25m42s
+      long: 1h4m
+      service: catalog
+      severity: critical
+      short: 5m
+      slo: catalog-sla-critical
+  - alert: ErrorBudgetBurn
+    expr: http_requests:burnrate32m{service="catalog",slo="catalog-sla-critical"}
+      > (7 * (1-0.88)) and http_requests:burnrate6h26m{service="catalog",slo="catalog-sla-critical"}
+      > (7 * (1-0.88))
+    for: 16m0s
+    labels:
+      exhaustion: 4d6h51m25s
+      long: 6h26m
+      service: catalog
+      severity: critical
+      short: 32m
+      slo: catalog-sla-critical
+  - alert: ErrorBudgetBurn
+    expr: http_requests:burnrate2h9m{service="catalog",slo="catalog-sla-critical"}
+      > (2 * (1-0.88)) and http_requests:burnrate1d1h43m{service="catalog",slo="catalog-sla-critical"}
+      > (2 * (1-0.88))
+    for: 1h4m0s
+    labels:
+      exhaustion: 15d
+      long: 1d1h43m
+      service: catalog
+      severity: warning
+      short: 2h9m
+      slo: catalog-sla-critical
+  - alert: ErrorBudgetBurn
+    expr: http_requests:burnrate6h26m{service="catalog",slo="catalog-sla-critical"}
+      > (1 * (1-0.88)) and http_requests:burnrate4d6h51m{service="catalog",slo="catalog-sla-critical"}
+      > (1 * (1-0.88))
+    for: 3h13m0s
+    labels:
+      exhaustion: 30d
+      long: 4d6h51m
+      service: catalog
+      severity: warning
+      short: 6h26m
+      slo: catalog-sla-critical
+- interval: 30s
+  name: catalog-sla-critical-generic
+  rules:
+  - expr: "0.88"
+    labels:
+      slo: catalog-sla-critical
+    record: pyrra_objective
+  - expr: "2592000"
+    labels:
+      slo: catalog-sla-critical
+    record: pyrra_window
+  - expr: 1 - sum(http_requests:increase30d{service="catalog",slo="catalog-sla-critical",status="500"}
+      or vector(0)) / sum(http_requests:increase30d{service="catalog",slo="catalog-sla-critical"})
+    labels:
+      slo: catalog-sla-critical
+    record: pyrra_availability
+  - expr: sum(rate(http_requests_total{service="catalog"}[5m]))
+    labels:
+      slo: catalog-sla-critical
+    record: pyrra_requests:rate5m
+  - expr: sum(rate(http_requests_total{service="catalog",status="500"}[5m])) or vector(0)
+    labels:
+      slo: catalog-sla-critical
+    record: pyrra_errors:rate5m

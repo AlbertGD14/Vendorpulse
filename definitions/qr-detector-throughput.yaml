@@ -1,0 +1,16 @@
+apiVersion: pyrra.dev/v1alpha1
+kind: ServiceLevelObjective
+metadata:
+  name: qr-detector-throughput
+  labels:
+    service: qr-detector
+spec:
+  description: "Throughput del QR detector: >= 5 fps el 99% del tiempo"
+  target: "99"
+  window: 1h
+  indicator:
+    ratio:
+      errors:
+        metric: sli_errors_total{service="qr-detector", check="throughput"}
+      total:
+        metric: sli_checks_total{service="qr-detector", check="throughput"}

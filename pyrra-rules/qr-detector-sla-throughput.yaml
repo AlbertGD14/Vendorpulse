@@ -1,0 +1,161 @@
+groups:
+- interval: 2m30s
+  name: qr-detector-sla-throughput-increase
+  rules:
+  - expr: sum(increase(sli_checks_total{check="throughput",service="qr-detector"}[30d]))
+    labels:
+      check: throughput
+      service: qr-detector
+      slo: qr-detector-sla-throughput
+    record: sli_checks:increase30d
+  - alert: SLOMetricAbsent
+    expr: absent(sli_checks_total{check="throughput",service="qr-detector"}) == 1
+    for: 47m
+    labels:
+      check: throughput
+      service: qr-detector
+      severity: critical
+      slo: qr-detector-sla-throughput
+  - expr: sum(increase(sli_errors_total{check="throughput",service="qr-detector"}[30d]))
+    labels:
+      check: throughput
+      service: qr-detector
+      slo: qr-detector-sla-throughput
+    record: sli_errors:increase30d
+  - alert: SLOMetricAbsent
+    expr: absent(sli_errors_total{check="throughput",service="qr-detector"}) == 1
+    for: 47m
+    labels:
+      check: throughput
+      service: qr-detector
+      severity: critical
+      slo: qr-detector-sla-throughput
+- interval: 30s
+  name: qr-detector-sla-throughput
+  rules:
+  - expr: sum(rate(sli_errors_total{check="throughput",service="qr-detector"}[5m]))
+      / sum(rate(sli_checks_total{check="throughput",service="qr-detector"}[5m]))
+    labels:
+      check: throughput
+      service: qr-detector
+      slo: qr-detector-sla-throughput
+    record: sli_checks:burnrate5m
+  - expr: sum(rate(sli_errors_total{check="throughput",service="qr-detector"}[32m]))
+      / sum(rate(sli_checks_total{check="throughput",service="qr-detector"}[32m]))
+    labels:
+      check: throughput
+      service: qr-detector
+      slo: qr-detector-sla-throughput
+    record: sli_checks:burnrate32m
+  - expr: sum(rate(sli_errors_total{check="throughput",service="qr-detector"}[1h4m]))
+      / sum(rate(sli_checks_total{check="throughput",service="qr-detector"}[1h4m]))
+    labels:
+      check: throughput
+      service: qr-detector
+      slo: qr-detector-sla-throughput
+    record: sli_checks:burnrate1h4m
+  - expr: sum(rate(sli_errors_total{check="throughput",service="qr-detector"}[2h9m]))
+      / sum(rate(sli_checks_total{check="throughput",service="qr-detector"}[2h9m]))
+    labels:
+      check: throughput
+      service: qr-detector
+      slo: qr-detector-sla-throughput
+    record: sli_checks:burnrate2h9m
+  - expr: sum(rate(sli_errors_total{check="throughput",service="qr-detector"}[6h26m]))
+      / sum(rate(sli_checks_total{check="throughput",service="qr-detector"}[6h26m]))
+    labels:
+      check: throughput
+      service: qr-detector
+      slo: qr-detector-sla-throughput
+    record: sli_checks:burnrate6h26m
+  - expr: sum(rate(sli_errors_total{check="throughput",service="qr-detector"}[1d1h43m]))
+      / sum(rate(sli_checks_total{check="throughput",service="qr-detector"}[1d1h43m]))
+    labels:
+      check: throughput
+      service: qr-detector
+      slo: qr-detector-sla-throughput
+    record: sli_checks:burnrate1d1h43m
+  - expr: sum(rate(sli_errors_total{check="throughput",service="qr-detector"}[4d6h51m]))
+      / sum(rate(sli_checks_total{check="throughput",service="qr-detector"}[4d6h51m]))
+    labels:
+      check: throughput
+      service: qr-detector
+      slo: qr-detector-sla-throughput
+    record: sli_checks:burnrate4d6h51m
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate5m{check="throughput",service="qr-detector",slo="qr-detector-sla-throughput"}
+      > (14 * (1-0.95)) and sli_checks:burnrate1h4m{check="throughput",service="qr-detector",slo="qr-detector-sla-throughput"}
+      > (14 * (1-0.95))
+    for: 2m0s
+    labels:
+      check: throughput
+      exhaustion: 2d3h25m42s
+      long: 1h4m
+      service: qr-detector
+      severity: critical
+      short: 5m
+      slo: qr-detector-sla-throughput
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate32m{check="throughput",service="qr-detector",slo="qr-detector-sla-throughput"}
+      > (7 * (1-0.95)) and sli_checks:burnrate6h26m{check="throughput",service="qr-detector",slo="qr-detector-sla-throughput"}
+      > (7 * (1-0.95))
+    for: 16m0s
+    labels:
+      check: throughput
+      exhaustion: 4d6h51m25s
+      long: 6h26m
+      service: qr-detector
+      severity: critical
+      short: 32m
+      slo: qr-detector-sla-throughput
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate2h9m{check="throughput",service="qr-detector",slo="qr-detector-sla-throughput"}
+      > (2 * (1-0.95)) and sli_checks:burnrate1d1h43m{check="throughput",service="qr-detector",slo="qr-detector-sla-throughput"}
+      > (2 * (1-0.95))
+    for: 1h4m0s
+    labels:
+      check: throughput
+      exhaustion: 15d
+      long: 1d1h43m
+      service: qr-detector
+      severity: warning
+      short: 2h9m
+      slo: qr-detector-sla-throughput
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate6h26m{check="throughput",service="qr-detector",slo="qr-detector-sla-throughput"}
+      > (1 * (1-0.95)) and sli_checks:burnrate4d6h51m{check="throughput",service="qr-detector",slo="qr-detector-sla-throughput"}
+      > (1 * (1-0.95))
+    for: 3h13m0s
+    labels:
+      check: throughput
+      exhaustion: 30d
+      long: 4d6h51m
+      service: qr-detector
+      severity: warning
+      short: 6h26m
+      slo: qr-detector-sla-throughput
+- interval: 30s
+  name: qr-detector-sla-throughput-generic
+  rules:
+  - expr: "0.95"
+    labels:
+      slo: qr-detector-sla-throughput
+    record: pyrra_objective
+  - expr: "2592000"
+    labels:
+      slo: qr-detector-sla-throughput
+    record: pyrra_window
+  - expr: 1 - sum(sli_errors:increase30d{check="throughput",service="qr-detector",slo="qr-detector-sla-throughput"}
+      or vector(0)) / sum(sli_checks:increase30d{check="throughput",service="qr-detector",slo="qr-detector-sla-throughput"})
+    labels:
+      slo: qr-detector-sla-throughput
+    record: pyrra_availability
+  - expr: sum(rate(sli_checks_total{check="throughput",service="qr-detector"}[5m]))
+    labels:
+      slo: qr-detector-sla-throughput
+    record: pyrra_requests:rate5m
+  - expr: sum(rate(sli_errors_total{check="throughput",service="qr-detector"}[5m]))
+      or vector(0)
+    labels:
+      slo: qr-detector-sla-throughput
+    record: pyrra_errors:rate5m

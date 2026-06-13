@@ -1,0 +1,140 @@
+groups:
+- interval: 30s
+  name: cv-analyzer-latency-increase
+  rules:
+  - expr: sum(increase(sli_checks_total{check="latency",service="cv-analyzer"}[1h]))
+    labels:
+      check: latency
+      service: cv-analyzer
+      slo: cv-analyzer-latency
+    record: sli_checks:increase1h
+  - alert: SLOMetricAbsent
+    expr: absent(sli_checks_total{check="latency",service="cv-analyzer"}) == 1
+    for: 0s
+    labels:
+      check: latency
+      service: cv-analyzer
+      severity: critical
+      slo: cv-analyzer-latency
+  - expr: sum(increase(sli_errors_total{check="latency",service="cv-analyzer"}[1h]))
+    labels:
+      check: latency
+      service: cv-analyzer
+      slo: cv-analyzer-latency
+    record: sli_errors:increase1h
+  - alert: SLOMetricAbsent
+    expr: absent(sli_errors_total{check="latency",service="cv-analyzer"}) == 1
+    for: 0s
+    labels:
+      check: latency
+      service: cv-analyzer
+      severity: critical
+      slo: cv-analyzer-latency
+- interval: 30s
+  name: cv-analyzer-latency
+  rules:
+  - expr: sum(rate(sli_errors_total{check="latency",service="cv-analyzer"}[1s])) /
+      sum(rate(sli_checks_total{check="latency",service="cv-analyzer"}[1s]))
+    labels:
+      check: latency
+      service: cv-analyzer
+      slo: cv-analyzer-latency
+    record: sli_checks:burnrate0s
+  - expr: sum(rate(sli_errors_total{check="latency",service="cv-analyzer"}[1m])) /
+      sum(rate(sli_checks_total{check="latency",service="cv-analyzer"}[1m]))
+    labels:
+      check: latency
+      service: cv-analyzer
+      slo: cv-analyzer-latency
+    record: sli_checks:burnrate1m
+  - expr: sum(rate(sli_errors_total{check="latency",service="cv-analyzer"}[2m])) /
+      sum(rate(sli_checks_total{check="latency",service="cv-analyzer"}[2m]))
+    labels:
+      check: latency
+      service: cv-analyzer
+      slo: cv-analyzer-latency
+    record: sli_checks:burnrate2m
+  - expr: sum(rate(sli_errors_total{check="latency",service="cv-analyzer"}[9m])) /
+      sum(rate(sli_checks_total{check="latency",service="cv-analyzer"}[9m]))
+    labels:
+      check: latency
+      service: cv-analyzer
+      slo: cv-analyzer-latency
+    record: sli_checks:burnrate9m
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate0s{check="latency",service="cv-analyzer",slo="cv-analyzer-latency"}
+      > (14 * (1-0.99)) and sli_checks:burnrate0s{check="latency",service="cv-analyzer",slo="cv-analyzer-latency"}
+      > (14 * (1-0.99))
+    for: 0s
+    labels:
+      check: latency
+      exhaustion: 4m17s
+      long: 0s
+      service: cv-analyzer
+      severity: critical
+      short: 0s
+      slo: cv-analyzer-latency
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate0s{check="latency",service="cv-analyzer",slo="cv-analyzer-latency"}
+      > (7 * (1-0.99)) and sli_checks:burnrate1m{check="latency",service="cv-analyzer",slo="cv-analyzer-latency"}
+      > (7 * (1-0.99))
+    for: 0s
+    labels:
+      check: latency
+      exhaustion: 8m34s
+      long: 1m
+      service: cv-analyzer
+      severity: critical
+      short: 0s
+      slo: cv-analyzer-latency
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate0s{check="latency",service="cv-analyzer",slo="cv-analyzer-latency"}
+      > (2 * (1-0.99)) and sli_checks:burnrate2m{check="latency",service="cv-analyzer",slo="cv-analyzer-latency"}
+      > (2 * (1-0.99))
+    for: 0s
+    labels:
+      check: latency
+      exhaustion: 30m
+      long: 2m
+      service: cv-analyzer
+      severity: warning
+      short: 0s
+      slo: cv-analyzer-latency
+  - alert: ErrorBudgetBurn
+    expr: sli_checks:burnrate1m{check="latency",service="cv-analyzer",slo="cv-analyzer-latency"}
+      > (1 * (1-0.99)) and sli_checks:burnrate9m{check="latency",service="cv-analyzer",slo="cv-analyzer-latency"}
+      > (1 * (1-0.99))
+    for: 0s
+    labels:
+      check: latency
+      exhaustion: 1h
+      long: 9m
+      service: cv-analyzer
+      severity: warning
+      short: 1m
+      slo: cv-analyzer-latency
+- interval: 30s
+  name: cv-analyzer-latency-generic
+  rules:
+  - expr: "0.99"
+    labels:
+      slo: cv-analyzer-latency
+    record: pyrra_objective
+  - expr: "3600"
+    labels:
+      slo: cv-analyzer-latency
+    record: pyrra_window
+  - expr: 1 - sum(sli_errors:increase1h{check="latency",service="cv-analyzer",slo="cv-analyzer-latency"}
+      or vector(0)) / sum(sli_checks:increase1h{check="latency",service="cv-analyzer",slo="cv-analyzer-latency"})
+    labels:
+      slo: cv-analyzer-latency
+    record: pyrra_availability
+  - expr: sum(rate(sli_checks_total{check="latency",service="cv-analyzer"}[5m]))
+    labels:
+      slo: cv-analyzer-latency
+    record: pyrra_requests:rate5m
+  - expr: sum(rate(sli_errors_total{check="latency",service="cv-analyzer"}[5m])) or
+      vector(0)
+    labels:
+      slo: cv-analyzer-latency
+    record: pyrra_errors:rate5m
